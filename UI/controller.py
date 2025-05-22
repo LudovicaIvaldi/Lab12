@@ -67,6 +67,8 @@ class Controller:
 
         score, path = self._model.getPercorso(numArchi)
         self._view.txtOut3.controls.append(ft.Text(f"Peso cammino massimo: {score}"))
-        for p in path:
-            self._view.txtOut3.controls.append(ft.Text(f"{p[0].Retailer_name} --> {p[1].Retailer_name}: {p[2]}"))
+        for i in range(0,len(path)-1):
+            nodo1=path[i]
+            nodo2=path[i+1]
+            self._view.txtOut3.controls.append(ft.Text(f"{nodo1.Retailer_name} --> {nodo2.Retailer_name}: {self._model.getPeso(nodo1,nodo2)}"))
         self._view.update_page()

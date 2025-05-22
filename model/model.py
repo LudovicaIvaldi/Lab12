@@ -38,45 +38,50 @@ class Model:
         sortato = sorted(volumi.items(), key=lambda x: x[1], reverse=True)
         return dict(sortato)
 
-    def getPercorso(self, numArchi):
+    def getPercorso(self, N):
         self._bestScore = 0
         self._bestPath = []  # voglio una lista di tuple con (n1, n2, peso), (n2, n3, peso) ...
         parziale = []
-        for start in self._graph.nodes:
-            self._ricorsione(parziale, numArchi, start, [start])
+        self._ricorsione(parziale,N)
         return self._bestScore, self._bestPath
 
-    def _ricorsione(self, parziale, numArchi, start, visitati):
+    def _ricorsione(self, parziale, N):
         # Se il percorso ha almeno un arco, deduco il nodo corrente dall'ultimo arco
-        if len(parziale) > 0:
-            nodoCorrente = parziale[-1][1]  # nodo a cui sono arrivata
+        if len(parziale)==N+1 and parziale[-1]==parziale[0]:
+            if self.getScore(parziale)>self._bestScore:
+                self._bestScore = self.getScore(parziale)
+                self._bestPath = copy.deepcopy(parziale)
+        if len(parziale)==N+1:
+            return
+        #devo metterlo qui e non come condizione terminale se no mi lascia aperte tutte le ricorsioni
+        #in cui la lughezza supera N, perchè non entra nell'if e non le chiude
         else:
-            nodoCorrente = start  # all'inizio
-        # condizione terminale
-        if len(parziale) == numArchi:
-            if nodoCorrente == start:
-                if self.getSommaPesi(parziale) > self._bestScore:
-                    self._bestScore = self.getSommaPesi(parziale)
-                    self._bestPath = copy.deepcopy(parziale)
-        else:
-            for vicino in self._graph.neighbors(nodoCorrente):
-                if vicino == start and len(parziale) == numArchi - 1:
-                    # Ultimo passo: torna al nodo iniziale
-                    parziale.append((nodoCorrente, vicino, self._graph[nodoCorrente][vicino]['weight']))
-                    self._ricorsione(parziale, numArchi, start, visitati)
+            if len(parziale)==0:
+                for n in self._graph.nodes:
+                    parziale.append(n)
+                    # print(parziale)
+                    self._ricorsione(parziale, N)
                     parziale.pop()
-                elif vicino not in visitati:
-                    parziale.append((nodoCorrente, vicino, self._graph[nodoCorrente][vicino]['weight']))
-                    visitati.append(vicino)
-                    self._ricorsione(parziale, numArchi, start, visitati)
-                    visitati.remove(vicino)
-                    parziale.pop()
+            else:
+                for n in self._graph.neighbors(parziale[-1]):
+                    if n not in parziale[1:]:
+                        parziale.append(n)
+                        # print(parziale)
+                        self._ricorsione(parziale, N)
+                        parziale.pop()
 
-    def getSommaPesi(self, parziale):
+
+
+    def getScore(self, parziale):
         pesoTot = 0
-        for arco in parziale:
-            pesoTot += arco[2]
+        for i in range(0,len(parziale)-1):
+            pesoTot += self._graph[parziale[i]][parziale[i+1]]['weight']
+        # print(pesoTot)
         return pesoTot
+
+
+    def getPeso(self,n1,n2):
+        return self._graph[n1][n2]["weight"]
 
 
 
